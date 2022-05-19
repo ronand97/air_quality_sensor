@@ -2,27 +2,55 @@ import streamlit as st
 from dotenv import load_dotenv
 import os
 import pandas as pd
-
+from multiprocessing import AuthenticationError
 import utils
-import simulate_dat
 
-load_dotenv()
-ENVIRONMENT = os.environ['ENVIRONMENT']
-
+from cassandra.cluster import Cluster
+from cassandra.auth import PlainTextAuthProvider
 
 class Dashboard:
-    def __init__(self) -> None:
+    def __init__(
+            self,
+            cassandra_client_id: str,
+            cassandra_client_secret: str,
+            cassandra_config_fp: str) -> None:
+        
+        self.data = None
         self.df = pd.DataFrame()
+
+        self.cassandra_client_id = cassandra_client_id
+        self.cassandra_client_secret = cassandra_client_secret
+        self.cassandra_config_fp = cassandra_config_fp
+        self._cassandra_auth()
+
+    def _cassandra_auth(self) -> None:
+        cloud_config= {'secure_connect_bundle': self.cassandra_config_fp}
+        auth_provider = PlainTextAuthProvider(self.cassandra_client_id, self.cassandra_client_secret)
+        self.cluster = Cluster(cloud=cloud_config, auth_provider=auth_provider)
+        self.session = self.cluster.connect("air_quality_data")
+        row = self.session.execute("select release_version from system.local").one()
+        if row:
+            print(row[0])
+        else:
+            raise AuthenticationError("Failed to auth to cassandra db")
 
     def _get_data(self) -> None:
         """
-        Get sensor reading data into pandas dataframe.
+        Get sensor reading data.
         """
-        data = simulate_dat.generate_toy_data(10)
-        self.df =  pd.DataFrame(data)
+        query_str = """
+        SELECT * FROM air_quality_data.measurements
+        """
+        dat = self.session.execute(query_str).all()
+        self.data = dat
 
     def _process_data(self) -> None:
-        pass
+        self.df = pd.DataFrame(self.data)
+        self.df = self.df\
+            .assign(
+                datetime=pd.to_datetime(self.df['timestamp'], unit='s')
+                )\
+            .sort_values(by='datetime', ascending=False)
 
     def _construct_dashboard_elements(self) -> None:
         st.set_page_config(layout="wide")
@@ -32,16 +60,27 @@ class Dashboard:
             use_container_width=True)
         st.write(self.df)
 
-
     def run(self) -> None:
         """
         Main orchestration function to run dashboard. Fetches sensor
         reading data and launches streamlit dashboard.
         """
         self._get_data()
+        self._process_data()
         self._construct_dashboard_elements()
 
 if __name__ == "__main__":
-    Dashboard().run()
+
+    load_dotenv()
+    ENVIRONMENT = os.environ['ENVIRONMENT']
+    CASSANDRA_CLIENT_ID = os.environ['CASSANDRA_CLIENT_ID']
+    CASSANDRA_CLIENT_SECRET = os.environ['CASSANDRA_CLIENT_SECRET']
+    CASSANDRA_CONFIG_FP = os.environ['CASSANDRA_CONFIG_FP']
+
+    dashboard = Dashboard(
+        cassandra_client_id=CASSANDRA_CLIENT_ID,
+        cassandra_client_secret=CASSANDRA_CLIENT_SECRET,
+        cassandra_config_fp=CASSANDRA_CONFIG_FP)
+    dashboard.run()
 
 

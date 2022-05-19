@@ -3,10 +3,7 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 
-load_dotenv()
-CACHE_TTL = os.environ['CACHE_TTL']
 
-st.cache(persist=True, ttl=CACHE_TTL)
 def generate_toy_data(n: int) -> list:
 
     list_of_jsons = []
