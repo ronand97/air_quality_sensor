@@ -101,6 +101,7 @@ class Measurements:
         print("writing measurement to cassandra")
         self._parse_measurements()
         self._write_to_cassandra()
+        self._sleep_sensor()
 
     def _parse_measurements(self) -> None:
 
