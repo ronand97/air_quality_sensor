@@ -17,13 +17,13 @@ class Measurements:
     """
 
     def __init__(
-        self,
-        serial_path: str,
-        cassandra_client_id: str,
-        cassandra_client_secret: str,
-        cassandra_config_fp: str) -> None:
+            self,
+            serial_path: str,
+            cassandra_client_id: str,
+            cassandra_client_secret: str,
+            cassandra_config_fp: str) -> None:
 
-        self.serial_path = serial_path  
+        self.serial_path = serial_path
         self.unit = SDS011.UnitsOfMeasure.MassConcentrationEuropean
         self.sensor = SDS011(
             device_path=self.serial_path,
@@ -42,8 +42,9 @@ class Measurements:
         self._cassandra_auth()
 
     def _cassandra_auth(self) -> None:
-        cloud_config= {'secure_connect_bundle': self.cassandra_config_fp}
-        auth_provider = PlainTextAuthProvider(self.cassandra_client_id, self.cassandra_client_secret)
+        cloud_config = {'secure_connect_bundle': self.cassandra_config_fp}
+        auth_provider = PlainTextAuthProvider(
+            self.cassandra_client_id, self.cassandra_client_secret)
         self.cluster = Cluster(cloud=cloud_config, auth_provider=auth_provider)
         self.session = self.cluster.connect("air_quality_data")
         row = self.session.execute("select release_version from system.local").one()
@@ -89,35 +90,22 @@ class Measurements:
         self.sensor.reset()
         time.sleep(60)
         self.print_sensor_info()
-        while self.take_continuous_meas:
-            
-            print("taking measurement")
-            # take measurement
-            self.latest_measurement = self.sensor.get_values()
-            if self.latest_measurement is not None:
-                self.print_values(
-                    timing=0,
-                    values=self.latest_measurement,
-                    unit_of_measure=self.unit
-              )
-            print("writing measurement to cassandra")
-            self._parse_measurements()
-            self._write_to_cassandra()
-
-            print("sleeping 4 mins until next measurement")
-            # sleep until next measurement
-            self._sleep_sensor()
-            time.sleep(60*4)
-
-            print("waking up for 60s until next measurement")
-            # wake up for next measurement
-            self._unsleep_sensor()
-            time.sleep(60)
-
+        print("taking measurement")
+        self.latest_measurement = self.sensor.get_values()
+        if self.latest_measurement is not None:
+            self.print_values(
+                timing=0,
+                values=self.latest_measurement,
+                unit_of_measure=self.unit
+            )
+        print("writing measurement to cassandra")
+        self._parse_measurements()
+        self._write_to_cassandra()
+        self._sleep_sensor()
 
     def _parse_measurements(self) -> None:
-        
-        if self.unit== SDS011.UnitsOfMeasure.MassConcentrationEuropean:
+
+        if self.unit == SDS011.UnitsOfMeasure.MassConcentrationEuropean:
             unit = 'µg/m³'
         else:
             unit = 'pcs/0.01cft'
@@ -127,7 +115,7 @@ class Measurements:
              "pm10": self.latest_measurement[0],
              "unit": unit
          }
-    
+
     def _upload_measurements_to_cassandra(self) -> None:
         pass
 
@@ -138,10 +126,10 @@ class Measurements:
         else:
             unit = 'pcs/0.01cft'
         print("Waited %d secs\nValues measured in %s:    PM2.5  " %
-            (timing, unit), values[1], ", PM10 ", values[0])
+             (timing, unit), values[1], ", PM10 ", values[0])
+
 
 if __name__ == "__main__":
-    import time
     load_dotenv()
     ENVIRONMENT = str(os.environ['ENVIRONMENT'])
     CASSANDRA_CLIENT_ID = os.environ['CASSANDRA_CLIENT_ID']
