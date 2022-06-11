@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom
+*.zip
+*.parquet
+.env
+.DS_Store
