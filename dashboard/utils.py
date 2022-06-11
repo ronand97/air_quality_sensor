@@ -24,7 +24,7 @@ def create_plotly_line_chart(df):
     fig.add_hline(y=20.0, line_width=3, line_dash="dash", line_color="darkred", name="Mean safe limit of PM10 exposure (WHO)")
     fig.update_layout(
         title="Measurements of PM2.5 and PM10 using SDS011 Sensor",
-        xaxis_title="DateTime",
+        xaxis_title="DateTime [UTC]",
         yaxis_title=f"{df['unit'].unique()}"
     )
     
