@@ -1,6 +1,8 @@
 import streamlit as st
 from dotenv import load_dotenv
 import os
+import time
+from pathlib import Path
 import pandas as pd
 from multiprocessing import AuthenticationError
 import utils
@@ -15,7 +17,6 @@ class Dashboard:
             cassandra_client_secret: str,
             cassandra_config_fp: str) -> None:
         
-        self.data = None
         self.df = pd.DataFrame()
 
         self.cassandra_client_id = cassandra_client_id
@@ -34,18 +35,28 @@ class Dashboard:
         else:
             raise AuthenticationError("Failed to auth to cassandra db")
 
-    def _get_data(self) -> None:
+    def _get_data(self, cache_seconds: int, fp: str = "data.parquet") -> None:
         """
-        Get sensor reading data.
+        Get sensor reading data. Performs simple manual caching
+        by dumping to local parquet file and overwriting with latest
+        data.
         """
+        p = Path(fp)
+        # check if file exists and use if applicable
+        if p.exists():
+            last_modified = os.path.getmtime(p)
+            if (time.time() - last_modified) < cache_seconds:
+                self.df = pd.read_parquet(p)
+                return
+
         query_str = """
         SELECT * FROM air_quality_data.measurements
         """
-        dat = self.session.execute(query_str).all()
-        self.data = dat
+        self.df = pd.DataFrame(self.session.execute(query_str).all())
+        self.df.to_parquet(p)
 
     def _process_data(self) -> None:
-        self.df = pd.DataFrame(self.data)
+        
         self.df = self.df\
             .assign(
                 datetime=pd.to_datetime(self.df['timestamp'], unit='s')
@@ -65,7 +76,7 @@ class Dashboard:
         Main orchestration function to run dashboard. Fetches sensor
         reading data and launches streamlit dashboard.
         """
-        self._get_data()
+        self._get_data(cache_seconds=60*30)
         self._process_data()
         self._construct_dashboard_elements()
 
