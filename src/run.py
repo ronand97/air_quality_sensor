@@ -3,6 +3,7 @@ from sds011_particle_sensor.Code.sds011 import SDS011
 from dotenv import load_dotenv
 import os
 import time
+from pathlib import Path
 
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
@@ -38,7 +39,7 @@ class Measurements:
 
         self.cassandra_client_id = cassandra_client_id
         self.cassandra_client_secret = cassandra_client_secret
-        self.cassandra_config_fp = cassandra_config_fp
+        self.cassandra_config_fp = Path(cassandra_config_fp)
         self._cassandra_auth()
 
     def _cassandra_auth(self) -> None:
@@ -136,13 +137,11 @@ if __name__ == "__main__":
     CASSANDRA_CLIENT_SECRET = os.environ['CASSANDRA_CLIENT_SECRET']
     CASSANDRA_CONFIG_FP = os.environ['CASSANDRA_CONFIG_FP']
     SERIAL_PATH = str(os.environ['SERIAL_PATH'])
-
     meas = Measurements(
         serial_path=SERIAL_PATH,
         cassandra_client_id=CASSANDRA_CLIENT_ID,
         cassandra_client_secret=CASSANDRA_CLIENT_SECRET,
         cassandra_config_fp=CASSANDRA_CONFIG_FP)
-
     meas._take_measurements()
 
     pass
