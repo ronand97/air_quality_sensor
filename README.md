@@ -9,6 +9,10 @@ I recently moved to London, known for its poor pollution, and have set the senso
 
 Since I'm in the same borough as the world's densest air quality sensor network (https://www.airlabs.com/worlds-densest-air-quality-sensor-network-aims-to-revolutionise-understanding-of-air-pollution-in-urban-spaces/) I should be able to match my measurements up with theirs!
 
+The URL to my dashboard is
+
+https://ronand-aqs-dashboard.azurewebsites.net/
+
 ## Taking sensor readings
 I found this bit very fiddly and there are lots of wild code snippets online to take sensor readings. Most work, but I could not get to work reliably and some are written horrifically. After many weeks of fiddling around I settled on using this repo:
 https://github.com/chrisballinger/sds011_particle_sensor
