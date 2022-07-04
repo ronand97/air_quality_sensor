@@ -1,4 +1,7 @@
-streamlit==0.62.0
+wheel==0.37.1 
+pyarrow==8.0.0 
+streamlit==1.10.0
 python-dotenv==0.20.0
-pandas==1.3.5
+pandas==1.4.3
 plotly==5.7.0
+cassandra-driver==3.25.0
