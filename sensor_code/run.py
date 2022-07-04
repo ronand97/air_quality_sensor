@@ -43,6 +43,12 @@ class Measurements:
         self._cassandra_auth()
 
     def _cassandra_auth(self) -> None:
+        """
+        Using the secure connect .zip provided by datastax, auth
+        to the Cassandra instance and test the auth.
+
+        :raises AuthenticationError: if test is unsuccessful
+        """
         cloud_config = {'secure_connect_bundle': self.cassandra_config_fp}
         auth_provider = PlainTextAuthProvider(
             self.cassandra_client_id, self.cassandra_client_secret)
@@ -55,6 +61,9 @@ class Measurements:
             raise AuthenticationError("Failed to auth to cassandra db")
 
     def _write_to_cassandra(self) -> None:
+        """
+        Write single measurement to Cassandra db table
+        """
         query_str = """
         INSERT INTO air_quality_data.measurements (timestamp, pm2_5, pm10, unit)
         VALUES (%s, %s, %s, %s)
@@ -71,6 +80,10 @@ class Measurements:
         )
 
     def print_sensor_info(self) -> None:
+        """
+        Print some generic metadata about the sensor. Can be
+        useful for logging/debugging.
+        """
         print(f"""
         SDS011 Sensor Info.
         Device ID: {self.sensor.device_id}
@@ -81,12 +94,24 @@ class Measurements:
         """)
 
     def _sleep_sensor(self) -> None:
+        """
+        Put the sensor to sleep. Recommended to increase lifespan
+        so that laser/fan components are not running continuously.
+        """
         self.sensor.workstate = self.sensor.WorkStates.Sleeping
 
     def _unsleep_sensor(self) -> None:
+        """
+        Wake the sensor up from sleep. This can take up to 60s.
+        """
         self.sensor.workstate = self.sensor.WorkStates.Measuring
 
     def _take_measurements(self) -> None:
+        """
+        Reset the sensor and wait for it to wake up.
+        Take a reading, parse the results and upload them to
+        cassandra. Sleep the sensor.
+        """
         print("reset sensor and wait 60s for warmup")
         self.sensor.reset()
         time.sleep(60)
@@ -105,7 +130,10 @@ class Measurements:
         self._sleep_sensor()
 
     def _parse_measurements(self) -> None:
-
+        """
+        Creates a dict that will be written to Cassandra. Adds
+        on appropriate units.
+        """
         if self.unit == SDS011.UnitsOfMeasure.MassConcentrationEuropean:
             unit = 'µg/m³'
         else:
@@ -117,11 +145,12 @@ class Measurements:
              "unit": unit
          }
 
-    def _upload_measurements_to_cassandra(self) -> None:
-        pass
-
     @staticmethod
     def print_values(timing, values, unit_of_measure):
+        """
+        Print off any given measurement - lifted from
+        SDS011_particle_sensor code.
+        """
         if unit_of_measure == SDS011.UnitsOfMeasure.MassConcentrationEuropean:
             unit = 'µg/m³'
         else:
