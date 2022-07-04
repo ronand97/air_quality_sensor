@@ -5,7 +5,9 @@ With airborne transmission facilitating the transmission of covid-19, and with m
 
 https://www.gov.uk/government/statistics/air-quality-statistics/concentrations-of-particulate-matter-pm10-and-pm25
 
-I recently moved to London, known for its poor pollution, and have set the sensor up to take a reading every 10 minutes in my living room. Since I'm in the same borough as the world's densest air quality sensor network (https://www.airlabs.com/worlds-densest-air-quality-sensor-network-aims-to-revolutionise-understanding-of-air-pollution-in-urban-spaces/) I should be able to match my measurements up with theirs!
+I recently moved to London, known for its poor pollution, and have set the sensor up to take a reading every 10 minutes in my living room. The data is uploaded to a Cassandra DB instance on DataStax (chosen for its generous free tier). 
+
+Since I'm in the same borough as the world's densest air quality sensor network (https://www.airlabs.com/worlds-densest-air-quality-sensor-network-aims-to-revolutionise-understanding-of-air-pollution-in-urban-spaces/) I should be able to match my measurements up with theirs!
 
 ## Taking sensor readings
 I found this bit very fiddly and there are lots of wild code snippets online to take sensor readings. Most work, but I could not get to work reliably and some are written horrifically. After many weeks of fiddling around I settled on using this repo:
@@ -22,7 +24,7 @@ Then, I have automated the running of this script using a shell script and setti
 `python src/run.py > temp.log 2>&1 &`
 
 ## Dashboard
-I used streamlit as it is very simple to get something up and running quickly. I've then wrapped it in Docker and deployed it to an Azure Container Service hooked up to an Azure Web App. This was more painful than it needed to be due to me building an image using an M1 Mac (ARM based CPU) and the image not running on Azure, giving me a generic message of:
+I used streamlit as it is very simple to get something up and running quickly. It really just connects to Cassandra and pulls data and displays it. I've then wrapped it in Docker and deployed it to an Azure Container Service hooked up to an Azure Web App. This was more painful than it needed to be due to me building an image using an M1 Mac (ARM based CPU) and the image not running on Azure, giving me a generic message of:
 > standard_init_linux.go:228: exec user process caused: exec format error
 
 To get around this, make sure to build the Dockerfile with the `--platform` flag, e.g.
