@@ -1,0 +1,3 @@
+[submodule "sensor_code/sds011_particle_sensor"]
+	path = sensor_code/sds011_particle_sensor
+	url = https://github.com/chrisballinger/sds011_particle_sensor.git
