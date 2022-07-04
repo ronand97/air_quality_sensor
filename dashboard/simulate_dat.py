@@ -1,8 +1,4 @@
 import random
-import os
-from dotenv import load_dotenv
-import streamlit as st
-
 
 def generate_toy_data(n: int) -> list:
 
