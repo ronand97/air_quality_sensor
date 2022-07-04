@@ -1,5 +1,3 @@
-from re import M
-from turtle import title
 import plotly.graph_objects as go
 
 def create_plotly_line_chart(df):
