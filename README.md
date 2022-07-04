@@ -21,13 +21,20 @@ many thanks to this author. If you clone my repo, you will have to init the git 
 
 Then, I have automated the running of this script using a shell script and setting a cronjob up on the raspberry pi. Single readings can be taken using something like 
 
-`python src/run.py > temp.log 2>&1 &`
+`$ python src/run.py > temp.log 2>&1 &`
 
 ## Dashboard
-I used streamlit as it is very simple to get something up and running quickly. It really just connects to Cassandra and pulls data and displays it. I've then wrapped it in Docker and deployed it to an Azure Container Service hooked up to an Azure Web App. This was more painful than it needed to be due to me building an image using an M1 Mac (ARM based CPU) and the image not running on Azure, giving me a generic message of:
+I used streamlit as it is very simple to get something up and running quickly. It really just connects to Cassandra and pulls data and displays it.
+
+The dashboard can be run with:
+
+`$ streamlit run dashboard.py`
+
+ I've then wrapped it in Docker and deployed it to an Azure Container Service hooked up to an Azure Web App. This was more painful than it needed to be due to me building an image using an M1 Mac (ARM based CPU) and the image not running on Azure, giving me a generic message of:
 > standard_init_linux.go:228: exec user process caused: exec format error
 
 To get around this, make sure to build the Dockerfile with the `--platform` flag, e.g.
+
 `$ docker build --platform linux/amd64 -t <img_name>:<img_tag> .     `
 
 
