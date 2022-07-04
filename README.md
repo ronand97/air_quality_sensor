@@ -42,3 +42,5 @@ I found these articles to be very useful:
 * Add more functionality to dashboard using existing data (filters, etc)
 * Add new data to dashboard (camden clean air data, wind direction)
 * Investigate predictive model for air quality for a given day
+* Known unknowns I haven't remembered
+* Unknown unknowns
