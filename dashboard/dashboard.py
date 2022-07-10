@@ -107,6 +107,9 @@ class Dashboard:
         st.write(self._filtered_df)
 
     def _filter_df_datetime(self) -> None:
+        """
+        Filter df on datetime before it's plotted/written
+        """
         self._filtered_df = self.df.copy()
         self._filtered_df = self._filtered_df[
             (self._filtered_df["datetime"].dt.date >= self._min_date_filter)
